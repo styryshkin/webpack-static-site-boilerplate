@@ -1,6 +1,5 @@
 // CSS
-require("../css/index.css");
+require("../css/index.scss");
 
 // JavaScript
-window.$ = require("jquery");
 console.log("index.js");
