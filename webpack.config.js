@@ -1,5 +1,7 @@
 const path = require("path");
 const webpack = require("webpack");
+const UglifyJsPlugin = webpack.optimize.UglifyJsPlugin;
+const OccurrenceOrderPlugin = webpack.optimize.OccurrenceOrderPlugin;
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const ExtractTextPlugin = require("extract-text-webpack-plugin");
 const CommonsChunkPlugin = webpack.optimize.CommonsChunkPlugin;
@@ -7,7 +9,7 @@ const layouts = require("reshape-layouts");
 const include = require("reshape-include");
 
 module.exports = {
-  devtool: "source-map",
+  devtool: false,
   context: path.join(__dirname, "src"),
   entry: {
     index: "./js/index.js",
@@ -15,8 +17,29 @@ module.exports = {
   },
   output: {
     path: path.join(__dirname, "public"),
-    filename: "js/[name].js"
+    filename: "js/[name].[chunkhash].js",
+    chunkFilename: "js/[name].[chunkhash].js"
   },
+  plugins: [
+    new ExtractTextPlugin("css/[name].[contenthash].css"),
+    new CommonsChunkPlugin({
+      name: "vendor",
+      minChunks: Infinity
+    }),
+    new UglifyJsPlugin(),
+    new OccurrenceOrderPlugin(),
+    new HtmlWebpackPlugin({
+      template: path.join(__dirname, "src/views", "index.html"),
+      chunks: ["vendor", "main"],
+      hash: false,
+      cache: true,
+      minify: {
+        collapseWhitespace: true,
+        removeComments: true
+      }
+    }),
+    new webpack.optimize.OccurrenceOrderPlugin()
+  ],
   module: {
     loaders: [
       {
@@ -78,18 +101,5 @@ module.exports = {
         ]
       }
     ]
-  },
-  plugins: [
-    new ExtractTextPlugin("css/[name].css"),
-    new CommonsChunkPlugin({
-      name: "vendor",
-      minChunks: Infinity
-    }),
-    new HtmlWebpackPlugin({
-      template: path.join(__dirname, "src/views", "index.html"),
-      chunks: ["vendor", "index"],
-      hash: false
-    }),
-    new webpack.optimize.OccurrenceOrderPlugin()
-  ]
+  }
 };
